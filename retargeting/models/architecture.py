@@ -72,13 +72,13 @@ class GAN_model(BaseModel):
                 para.requires_grad = requires_grad
 
     def forward(self):
-        self.latents = []
-        self.offset_repr = []
-        self.pos_ref = []
-        self.ee_ref = []
-        self.res = []
-        self.res_denorm = []
-        self.res_pos = []
+        self.latents = []       # Encoded motion features
+        self.offset_repr = []   # Encoded offset/skeleton representation
+        self.pos_ref = []       # Reference position
+        self.ee_ref = []        # Reference end effectors (what's the use of this?)
+        self.res = []           # Reconstructed motion ?
+        self.res_denorm = []    # Reconstructed motion (denormalized) ?
+        self.res_pos = []       # Reconstructed position ?
         self.fake_res = []
         self.fake_res_denorm = []
         self.fake_pos = []
@@ -88,29 +88,41 @@ class GAN_model(BaseModel):
         self.motion_denorm = []
         self.rnd_idx = []
 
+        # encode the skeleton structure(joint offsets) for each character topology
         for i in range(self.n_topology):
             self.offset_repr.append(self.models[i].static_encoder(self.dataset.offsets[i]))
 
         # reconstruct
         for i in range(self.n_topology):
+            # Get input motion and offset(character) index
             motion, offset_idx = self.motions_input[i]
             motion = motion.to(self.device)
             self.motions.append(motion)
 
+            # denormalize the input motion
             motion_denorm = self.dataset.denorm(i, offset_idx, motion)
             self.motion_denorm.append(motion_denorm)
+
+            # get skeleton structure information
             offsets = [self.offset_repr[i][p][offset_idx] for p in range(self.args.num_layers + 1)]
+
+            # run through the auto-encoder to get latent representation and reconstructed motion
             latent, res = self.models[i].auto_encoder(motion, offsets)
             res_denorm = self.dataset.denorm(i, offset_idx, res)
             res_pos = self.models[i].fk.forward_from_raw(res_denorm, self.dataset.offsets[i][offset_idx])
+
+            # store results
             self.res_pos.append(res_pos)
             self.latents.append(latent)
             self.res.append(res)
             self.res_denorm.append(res_denorm)
 
+            # calculate reference position and end effector position
             pos = self.models[i].fk.forward_from_raw(motion_denorm, self.dataset.offsets[i][offset_idx]).detach()
             ee = get_ee(pos, self.dataset.joint_topologies[i], self.dataset.ee_ids[i],
                         velo=self.args.ee_velo, from_root=self.args.ee_from_root)
+
+            # normalize end-effector positions by character height
             height = self.models[i].height[offset_idx]
             height = height.reshape((height.shape[0], 1, height.shape[1], 1))
             ee /= height
@@ -120,19 +132,27 @@ class GAN_model(BaseModel):
         # retargeting
         for src in range(self.n_topology):
             for dst in range(self.n_topology):
+                # Select target character indices (random during training, sequential during testing)
                 if self.is_train:
                     rnd_idx = torch.randint(len(self.character_names[dst]), (self.latents[src].shape[0],))
                 else:
                     rnd_idx = list(range(self.latents[0].shape[0]))
                 self.rnd_idx.append(rnd_idx)
+                
+                # Get destination character's skeleton structure information
                 dst_offsets_repr = [self.offset_repr[dst][p][rnd_idx] for p in range(self.args.num_layers + 1)]
+
+                # Process the regargeted motion
                 fake_res = self.models[dst].auto_encoder.dec(self.latents[src], dst_offsets_repr)
                 fake_latent = self.models[dst].auto_encoder.enc(fake_res, dst_offsets_repr)
 
+                # Calculate end-effector positions for the retargeted motion
                 fake_res_denorm = self.dataset.denorm(dst, rnd_idx, fake_res)
                 fake_pos = self.models[dst].fk.forward_from_raw(fake_res_denorm, self.dataset.offsets[dst][rnd_idx])
                 fake_ee = get_ee(fake_pos, self.dataset.joint_topologies[dst], self.dataset.ee_ids[dst],
                                  velo=self.args.ee_velo, from_root=self.args.ee_from_root)
+
+                # Normalize end-effector positions by character height
                 height = self.models[dst].height[rnd_idx]
                 height = height.reshape((height.shape[0], 1, height.shape[1], 1))
                 fake_ee = fake_ee / height
@@ -283,23 +303,31 @@ class GAN_model(BaseModel):
         gt_poses = []
         gt_denorm = []
         for src in range(self.n_topology):
-            gt = self.motion_backup[src]
+            gt = self.motion_backup[src]    # self.motion_backup is a list >> [src_tensor(4, 91, 156), tgt_tensor(4, 111, 156)]
             idx = list(range(gt.shape[0]))
-            gt = self.dataset.denorm(src, idx, gt)
+            gt = self.dataset.denorm(src, idx, gt)  # guess it's quaternion motion (4, 91, 156)
             gt_denorm.append(gt)
+            # Calculate ground truth poses using forward kinematics
+            # self.dataset.offsets[src][idx].shape >> torch.Size([4, 23, 3]) (is it the joint position?)
+            # skeleton + motion --kinematic_forward-->> pose
+            # gt_pose.shape >> torch.Size([4, 156, 23, 3]) for target size is torch.Size([4, 156, 28, 3])
             gt_pose = self.models[src].fk.forward_from_raw(gt, self.dataset.offsets[src][idx])
             gt_poses.append(gt_pose)
+
+            # Save ground truth poses to BVH files
             for i in idx:
                 new_path = os.path.join(self.bvh_path, self.character_names[src][i])
                 from option_parser import try_mkdir
                 try_mkdir(new_path)
                 self.writer[src][i].write_raw(gt[i, ...], 'quaternion', os.path.join(new_path, '{}_gt.bvh'.format(self.id_test)))
 
+        # Save retargeted poses to BVH files
         p = 0
         for src in range(self.n_topology):
             for dst in range(self.n_topology):
                 for i in range(len(self.character_names[dst])):
                     dst_path = os.path.join(self.bvh_path, self.character_names[dst][i])
+                    # self.fake_res_denorm[p][i, ...].shape >> torch.Size([91, 156])
                     self.writer[dst][i].write_raw(self.fake_res_denorm[p][i, ...], 'quaternion',
                                                   os.path.join(dst_path, '{}_{}.bvh'.format(self.id_test, src)))
                 p += 1

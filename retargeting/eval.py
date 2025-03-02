@@ -24,7 +24,12 @@ def eval(eval_seq, save_dir, test_device='cpu'):
     model = create_model(args, character_names, dataset)
     model.load(epoch=20000)
 
+    # len(dataset) >> 106 (106 motions)
+    # motions >> motion of each character
+    # [[source_char_motion_tensor][0, 1, 2, 3],    # source
+    #  [target_char_motion_tensor][0, 1, 2, 3]]    # target
     for i, motions in tqdm(enumerate(dataset), total=len(dataset)):
+        # code step into datasets/combined_motion.py(172)__getitem__()
         model.set_input(motions)
         model.test()
 
