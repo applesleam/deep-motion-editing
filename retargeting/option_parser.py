@@ -62,7 +62,7 @@ def get_args():
 def get_std_bvh(args=None, dataset=None):
     if args is None and dataset is None: raise Exception('Unexpected parameter')
     if dataset is None: dataset = args.dataset
-    std_bvh = './datasets/Mixamo/std_bvhs/{}.bvh'.format(dataset)
+    std_bvh = './datasets/Mixamo_XHY_m/std_bvhs/{}.bvh'.format(dataset)
     return std_bvh
 
 

@@ -146,8 +146,11 @@ class TestData(Dataset):
                 new_offset = torch.tensor(new_offset, dtype=torch.float)
                 new_offset = new_offset.reshape((1,) + new_offset.shape)
                 offsets_group.append(new_offset)
-                mean = np.load('./datasets/Mixamo/mean_var/{}_mean.npy'.format(character))
-                var = np.load('./datasets/Mixamo/mean_var/{}_var.npy'.format(character))
+                # mean = np.load('./datasets/Mixamo/mean_var/{}_mean.npy'.format(character))
+                # var = np.load('./datasets/Mixamo/mean_var/{}_var.npy'.format(character))
+                mean = np.load('./datasets/Mixamo_XHY_m/mean_var/{}_mean.npy'.format(character))
+                var = np.load('./datasets/Mixamo_XHY_m/mean_var/{}_var.npy'.format(character))
+
                 mean = torch.tensor(mean)
                 mean = mean.reshape((1, ) + mean.shape)
                 var = torch.tensor(var)

@@ -1,6 +1,9 @@
 import os
 import numpy as np
 import copy
+import sys
+current_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_path + "/..")
 from datasets.bvh_parser import BVH_file
 from datasets.motion_dataset import MotionData
 from option_parser import get_args, try_mkdir
@@ -18,8 +21,9 @@ def collect_bvh(data_path, character, files):
         motions.append(new_motion)
 
     save_file = data_path + character + '.npy'
+    motions_arr = np.asarray(motions, dtype=object)
 
-    np.save(save_file, motions)
+    np.save(save_file, motions_arr)
     print('Npy file saved at {}'.format(save_file))
 
 
@@ -44,12 +48,13 @@ def copy_std_bvh(data_path, character, files):
     """
     copy an arbitrary bvh file as a static information (skeleton's offset) reference
     """
-    cmd = 'cp \"{}\" ./datasets/Mixamo/std_bvhs/{}.bvh'.format(data_path + character + '/' + files[0], character)
+    cmd = 'cp \"{}\" ./datasets/Mixamo_XHY_m/std_bvhs/{}.bvh'.format(data_path + character + '/' + files[0], character)
+    print(cmd)
     os.system(cmd)
 
 
 if __name__ == '__main__':
-    prefix = './datasets/Mixamo/'
+    prefix = './datasets/Mixamo_XHY_m/'
     characters = [f for f in os.listdir(prefix) if os.path.isdir(os.path.join(prefix, f))]
     if 'std_bvhs' in characters: characters.remove('std_bvhs')
     if 'mean_var' in characters: characters.remove('mean_var')
@@ -63,4 +68,4 @@ if __name__ == '__main__':
 
         collect_bvh(prefix, character, files)
         copy_std_bvh(prefix, character, files)
-        write_statistics(character, './datasets/Mixamo/mean_var/')
+        write_statistics(character, './datasets/Mixamo_XHY_m/mean_var/')

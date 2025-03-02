@@ -7,6 +7,9 @@ as suffix to store the split files in the new dir.
 
 import sys
 import os
+current_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_path + "/..")
+print(sys.path)
 from option_parser import try_mkdir
 import numpy as np
 from tqdm import tqdm
@@ -100,7 +103,7 @@ def batch_split(source, dest):
 
 
 if __name__ == '__main__':
-    prefix = './datasets/Mixamo/'
+    prefix = './datasets/Mixamo_XHY/'
     names = [f for f in os.listdir(prefix) if os.path.isdir(os.path.join(prefix, f))]
 
     for name in names:
