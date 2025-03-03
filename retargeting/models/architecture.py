@@ -303,14 +303,17 @@ class GAN_model(BaseModel):
         gt_poses = []
         gt_denorm = []
         for src in range(self.n_topology):
-            gt = self.motion_backup[src]    # self.motion_backup is a list >> [src_tensor(4, 91, 156), tgt_tensor(4, 111, 156)]
+            # self.motion_backup >> [src_tensor(num_char, 22x4+3, frame_len), 
+            #                        tgt_tensor(num_char, 27x4+3, frame_len)]
+            gt = self.motion_backup[src]    
             idx = list(range(gt.shape[0]))
             gt = self.dataset.denorm(src, idx, gt)  # guess it's quaternion motion (4, 91, 156)
             gt_denorm.append(gt)
             # Calculate ground truth poses using forward kinematics
             # self.dataset.offsets[src][idx].shape >> torch.Size([4, 23, 3]) (is it the joint position?)
             # skeleton + motion --kinematic_forward-->> pose
-            # gt_pose.shape >> torch.Size([4, 156, 23, 3]) for target size is torch.Size([4, 156, 28, 3])
+            # source (topology0) gt_pose.shape >> torch.Size([4, 156, 23, 3]) 
+            # target (topology1) gt_pose.shape >> torch.Size([4, 156, 28, 3])
             gt_pose = self.models[src].fk.forward_from_raw(gt, self.dataset.offsets[src][idx])
             gt_poses.append(gt_pose)
 
