@@ -42,7 +42,7 @@ class GAN_model(BaseModel):
             for i in range(self.n_topology):
                 self.err_crit.append(Eval_Criterion(dataset.joint_topologies[i]))
             self.id_test = 0
-            self.bvh_path = os.path.join(args.save_dir, 'results/bvh')
+            self.bvh_path = os.path.join(args.save_dir, 'results_XHY_infer/bvh')
             option_parser.try_mkdir(self.bvh_path)
 
             self.writer = []

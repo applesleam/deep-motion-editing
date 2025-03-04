@@ -16,7 +16,7 @@ class MotionData(Dataset):
     def __init__(self, args):
         super(MotionData, self).__init__()
         name = args.dataset
-        file_path = './datasets/Mixamo_XHY_m/{}.npy'.format(name)
+        file_path = './datasets/Mixamo_XHY_infer/{}.npy'.format(name)
 
         if args.debug:
             file_path = file_path[:-4] + '_debug' + file_path[-4:]

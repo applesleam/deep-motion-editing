@@ -48,13 +48,13 @@ def copy_std_bvh(data_path, character, files):
     """
     copy an arbitrary bvh file as a static information (skeleton's offset) reference
     """
-    cmd = 'cp \"{}\" ./datasets/Mixamo_XHY_m/std_bvhs/{}.bvh'.format(data_path + character + '/' + files[0], character)
+    cmd = 'cp \"{}\" ./datasets/Mixamo_XHY_infer/std_bvhs/{}.bvh'.format(data_path + character + '/' + files[0], character)
     print(cmd)
     os.system(cmd)
 
 
 if __name__ == '__main__':
-    prefix = './datasets/Mixamo_XHY_m/'
+    prefix = './datasets/Mixamo_XHY_infer/'
     characters = [f for f in os.listdir(prefix) if os.path.isdir(os.path.join(prefix, f))]
     if 'std_bvhs' in characters: characters.remove('std_bvhs')
     if 'mean_var' in characters: characters.remove('mean_var')
@@ -68,4 +68,4 @@ if __name__ == '__main__':
 
         collect_bvh(prefix, character, files)
         copy_std_bvh(prefix, character, files)
-        write_statistics(character, './datasets/Mixamo_XHY_m/mean_var/')
+        write_statistics(character, './datasets/Mixamo_XHY_infer/mean_var/')

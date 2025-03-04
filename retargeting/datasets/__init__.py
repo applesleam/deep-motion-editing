@@ -13,7 +13,8 @@ def get_character_names(args):
         """
         To run evaluation successfully, number of characters in both groups must be the same. Repeat is okay.
         """
-        characters = [['BigVegas', 'BigVegas', 'BigVegas', 'BigVegas'],  ['Mousey_m', 'Goblin_m', 'Mremireh_m', 'Vampire_m']]
+        characters = [['BigVegas', 'BigVegas', 'BigVegas', 'BigVegas', 'BigVegas'],  
+                      ['AJ_m', 'Big_Vegas_m', 'Kaya_m', 'Mousey_m', 'Ortiz_m']]
         tmp = characters[1][args.eval_seq]
         characters[1][args.eval_seq] = characters[1][0]
         characters[1][0] = tmp
@@ -31,7 +32,7 @@ def create_dataset(args, character_names=None):
 
 
 def get_test_set():
-    with open('./datasets/Mixamo/test_list.txt', 'r') as file:
+    with open('./datasets/Mixamo_XHY_infer/test_list.txt', 'r') as file:
         list = file.readlines()
         list = [f[:-1] for f in list]
         return list

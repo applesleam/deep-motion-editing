@@ -148,8 +148,8 @@ class TestData(Dataset):
                 offsets_group.append(new_offset)
                 # mean = np.load('./datasets/Mixamo/mean_var/{}_mean.npy'.format(character))
                 # var = np.load('./datasets/Mixamo/mean_var/{}_var.npy'.format(character))
-                mean = np.load('./datasets/Mixamo_XHY_m/mean_var/{}_mean.npy'.format(character))
-                var = np.load('./datasets/Mixamo_XHY_m/mean_var/{}_var.npy'.format(character))
+                mean = np.load('./datasets/Mixamo_XHY_infer/mean_var/{}_mean.npy'.format(character))
+                var = np.load('./datasets/Mixamo_XHY_infer/mean_var/{}_var.npy'.format(character))
 
                 mean = torch.tensor(mean)
                 mean = mean.reshape((1, ) + mean.shape)
@@ -198,20 +198,30 @@ class TestData(Dataset):
 
     def get_item(self, gid, pid, id):
         character = self.characters[gid][pid]
-        path = './datasets/Mixamo/{}/'.format(character)
+        path = './datasets/Mixamo_XHY_infer/{}/'.format(character)
+
+        # workaround for the topology0 motion (BigVegas)
+        if character == 'BigVegas':
+            id = "./datasets/Mixamo_XHY_infer/BigVegas/Baseball Pitching.bvh"
         if isinstance(id, int):
             file = path + self.file_list[id]
         elif isinstance(id, str):
             file = id
         else:
             raise Exception('Wrong input file type')
+        print(file)
         if not os.path.exists(file):
             raise Exception('Cannot find file')
         file = BVH_file(file)
         motion = file.to_tensor(quater=self.args.rotation == 'quaternion')
-        motion = motion[:, ::2]
+
+        # for rendering we need original 60fps
+        # motion = motion[:, ::2]
         length = motion.shape[-1]
-        length = length // 4 * 4
+
+        # trim the length to 120 for fair comparison
+        # length = length // 4 * 4
+        length = 120
         return motion[..., :length].to(self.device)
 
     def denorm(self, gid, pid, data):
