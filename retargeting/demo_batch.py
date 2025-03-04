@@ -68,7 +68,7 @@ def eval_single_pair(input_bvh, target_bvh, test_type, output_filename):
             new_motion = dataset.get_item(i, j, file_id[i][j])
             new_motion.unsqueeze_(0)
             new_motion = (new_motion - dataset.mean[i][j]) / dataset.var[i][j]
-            input_group.append(new_motion[:,:,:100])
+            input_group.append(new_motion)
         print(input_group[0].shape)
         print(input_group[1].shape)
         input_group = torch.cat(input_group, dim=0)
@@ -114,14 +114,15 @@ def example(src_name, dest_name, src_bvh_name, dest_bvh_name, test_type, output_
     # print(cmd)
     # os.system(cmd)
 
-    fix_foot_contact(pjoin(output_path, 'result.bvh'),
-                     pjoin(output_path, 'input.bvh'),
-                     pjoin(output_path, 'result.bvh'),
-                     height)
+    # fix_foot_contact(pjoin(output_path, 'result.bvh'),
+    #                  pjoin(output_path, 'input.bvh'),
+    #                  pjoin(output_path, 'result.bvh'),
+    #                  height)
 
 
 if __name__ == '__main__':
     test_file = '/data/scratch/acw750/Development/github/deep-motion-editing/retargeting/datasets/mixamo/test.json'
+    output_path = './examples/intra_structure_60fps/'
     with open(test_file, 'r') as file:
         test_dict = json.load(file)
     for name in test_dict.keys():
@@ -134,12 +135,12 @@ if __name__ == '__main__':
                 tgt_bvh = i['target_motion_file'].replace('.fbx', '.bvh')
 
                 folder_name = name + '-' + str(idx)
-                tmp_path = './examples/intra_structure/' + folder_name
+                tmp_path = output_path + folder_name
                 if not os.path.exists(tmp_path):
-                    try_mkdir('./examples/intra_structure/' + folder_name)
+                    try_mkdir(tmp_path)
                 else:
                     continue
-                example(src_char+'_m', tgt_char+'_m', src_bvh, tgt_bvh, 'intra', './examples/intra_structure/' + folder_name)
+                example(src_char+'_m', tgt_char+'_m', src_bvh, tgt_bvh, 'intra', tmp_path)
     # example('Kaya_m', 'Peasant_Man_m', 'Roar.bvh', 'intra', './examples/intra_structure')
     # example('Aj', 'BigVegas', 'Dancing Running Man.bvh', 'intra', './examples/intra_structure')
     # example('BigVegas', 'Mousey_m', 'Dual Weapon Combo.bvh', 'cross', './examples/cross_structure')
