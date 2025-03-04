@@ -209,9 +209,11 @@ class TestData(Dataset):
             raise Exception('Cannot find file')
         file = BVH_file(file)
         motion = file.to_tensor(quater=self.args.rotation == 'quaternion')
-        motion = motion[:, ::2]
+        # comment to keep original 60fps
+        # motion = motion[:, ::2]
         length = motion.shape[-1]
-        length = length // 4 * 4
+        # length = length // 4 * 4
+        print("original motion shape: ", motion.shape)
         return motion[..., :length].to(self.device)
 
     def denorm(self, gid, pid, data):
