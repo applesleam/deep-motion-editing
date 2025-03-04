@@ -38,7 +38,7 @@ for name in test_dict.keys():
             tgt_bvh = i['target_motion_file'].replace('.fbx', '.bvh')
 
             folder_name = name + '-' + str(idx)
-            tmp_path = './examples/intra_structure/' + folder_name
+            tmp_path = './examples/intra_structure_60fps/' + folder_name
             if not os.path.exists(tmp_path):
                 print('Path not exists: ', tmp_path)
 
@@ -67,6 +67,6 @@ for name in test_dict.keys():
             new_dict[name].append(i)
 
 # Save the new dictionary to a pickle file
-output_pickle = '/data/scratch/acw750/Development/github/deep-motion-editing/retargeting/datasets/mixamo/test_results_del_one.pkl'
+output_pickle = '/data/scratch/acw750/Development/github/deep-motion-editing/retargeting/datasets/mixamo/test_results_60fps_del_one.pkl'
 with open(output_pickle, 'wb') as f:
     pkl.dump(new_dict, f)
