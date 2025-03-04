@@ -1,1 +1,1 @@
-python demo.py 
+python demo_batch.py 
