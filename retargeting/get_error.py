@@ -10,14 +10,14 @@ import Animation
 
 def full_batch(suffix, prefix):
     res = []
-    chars = ['Mousey_m', 'Goblin_m', 'Mremireh_m', 'Vampire_m']
+    chars = ['AJ_m', 'Big_Vegas_m', 'Kaya_m', 'Mousey_m', 'Ortiz_m']
     for char in chars:
         res.append(batch(char, suffix, prefix))
     return res
 
 
 def batch(char, suffix, prefix):
-    input_path = os.path.join(prefix, 'results/bvh')
+    input_path = os.path.join(prefix, 'results_XHY_infer/bvh')
 
     all_err = []
     ref_file = get_std_bvh(dataset=char)
